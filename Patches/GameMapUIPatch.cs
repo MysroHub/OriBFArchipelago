@@ -8,6 +8,7 @@ internal class GameMapUIPatch
 {
     private static void Postfix(GameMapUI __instance)
     {
-        Console.WriteLine("All Map is Discovered by Prefix!");
+        Console.WriteLine("change map to visited all areas");
+        __instance.CurrentHighlightedArea.VisitAllAreas();
     }
 }
