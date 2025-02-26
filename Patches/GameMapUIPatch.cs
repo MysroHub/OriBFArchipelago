@@ -12,12 +12,11 @@ internal class GameMapUIPatch
     /// <summary>
     /// Allows you to see the entire world map
     /// </summary>
-    /// <param name="__instance">the instance of the GameMapUI to patch</param>
-    private static void Postfix(GameMapUI __instance)
+    private static void Prefix()
     {
-        foreach (var teleporter in __instance.Teleporters.Teleporters)
+        foreach (var area in GameWorld.Instance.RuntimeAreas)
         {
-            teleporter.Area.VisitAllAreas();
+            area.VisitAllAreas();
         }
     }
 }
