@@ -16,10 +16,26 @@ namespace OriBFArchipelago.Core
 
         public static RandomizerController Instance { get; private set; }
 
+        private static List<string> tips;
+
         private void Awake()
         {
             SuspensionManager.Register(this);
             Instance = this;
+        }
+
+        private void Start()
+        {
+            // populate tips in start to make sure Keybinder has loaded the keybinds
+            tips = new List<string>()
+            {
+                $"Tip! Press ({Keybinder.ToString(KeybindAction.OpenTeleport)}) to teleport.",
+                $"Tip! Press ({Keybinder.ToString(KeybindAction.Help)}) to see all keybinds.",
+                $"Tip! Press ({Keybinder.ToString(KeybindAction.GoalProgress)}) to see your goal progress.",
+                $"Tip! Press ({Keybinder.ToString(KeybindAction.ListStones)}) to see your keystones and mapstones.",
+                $"Disconnected from the server? Press ({Keybinder.ToString(KeybindAction.Reconnect)}) to reconnect.",
+                "Tip! You can adjust some randomizer settings in the bottom left corner of the pause menu."
+            };
         }
 
         private void OnDestroy()
@@ -142,12 +158,9 @@ namespace OriBFArchipelago.Core
 
         private void FixedUpdate()
         {
-            if (Keybinder.OnPressed(KeybindAction.OpenTeleport))
+            if (Keybinder.OnPressed(KeybindAction.OpenTeleport) && PlayerHasControl)
             {
-                if (PlayerHasControl)
-                {
-                    OpenTeleportMenu();
-                }
+                OpenTeleportMenu();
             }
 
             if (Keybinder.OnPressed(KeybindAction.ListStones))
@@ -160,12 +173,37 @@ namespace OriBFArchipelago.Core
                 RandomizerManager.Connection.IsGoalComplete();
             }
 
+            if (Keybinder.OnPressed(KeybindAction.Reconnect) && PlayerHasControl)
+            {
+                RandomizerMessager.instance.AddMessage("Attempting reconnection...");
+                RandomizerManager.Receiver.OnReconnect();
+                RandomizerManager.Connection.Reconnect();
+            }
+
+            if (Keybinder.OnPressed(KeybindAction.Help))
+            {
+                StringBuilder stringBuilder = new StringBuilder();
+                foreach (KeybindAction action in Enum.GetValues(typeof(KeybindAction)))
+                {
+                    stringBuilder.AppendLine($"{action}: {Keybinder.ToString(action)}");
+                }
+                stringBuilder.AppendLine("Check Keybinds.md on the GitHub for more info");
+                RandomizerMessager.instance.AddMessage(stringBuilder.ToString());
+            }
+
             if (LocalGameState.TeleportNightberry && PlayerHasControl && Items.NightBerry != null)
             {
                 // teleport the nightberry to the location of the forlorn teleporter
                 Items.NightBerry.transform.position = new Vector3(-910f, -300f);
                 LocalGameState.TeleportNightberry = false;
             }
+        }
+
+        public void ShowRandomTip()
+        {
+            System.Random random = new System.Random();
+            int index = random.Next(0, tips.Count);
+            RandomizerMessager.instance.AddMessage($"{tips[index]}");
         }
     }
 }
