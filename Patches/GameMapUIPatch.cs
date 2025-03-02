@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using Sein.World;
 
 namespace OriBFArchipelago.Patches;
 
@@ -13,11 +14,23 @@ internal class GameMapUIPatch
     /// Allows you to see the entire world map
     /// </summary>
     /// <param name="__instance">the instance of the GameMapUI to patch</param>
-    private static void Postfix(GameMapUI __instance)
+    
+    private static void Prefix()
     {
-        foreach (var teleporter in __instance.Teleporters.Teleporters)
+        foreach (var area in GameWorld.Instance.RuntimeAreas)
         {
-            teleporter.Area.VisitAllAreas();
+            area.VisitAllAreas();
         }
     }
 }
+
+
+[HarmonyPatch(typeof(MistController), nameof(MistController.Awake))]
+internal class MistControllerPatch
+{
+    private static void Prefix()
+    {
+        Events.MistLifted = true;
+    }
+}
+
